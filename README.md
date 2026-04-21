@@ -248,6 +248,3 @@ Never commit credentials, scan results, or internal project data to this reposit
 
 ---
 
-## Licence
-
-MIT — see [LICENSE](LICENSE)
