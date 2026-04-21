@@ -60,7 +60,7 @@ The security team maintains one `Jenkinsfile` in this repository. Every applicat
 
 Application repositories contain only a 3-line comment Jenkinsfile with no logic.
 
-### Option B — all stages always run
+### All stages always run
 
 All stages run regardless of earlier findings. The Security Gate at the end fails with a combined reason covering all tools. Developers see all issues in one push, not one per push.
 
