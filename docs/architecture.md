@@ -78,7 +78,7 @@ Security Gate
   └── FAILED → red commit status + combined failure reason
 ```
 
-## Option B pipeline — all stages always run
+## All stages always run
 
 All stages run regardless of earlier findings. The Security Gate at the end fails with a combined reason that includes all tools. This ensures:
 - Developers see all issues in one push, not one per push
