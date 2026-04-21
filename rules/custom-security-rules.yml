@@ -1,0 +1,198 @@
+rules:
+
+  # ── SQL Injection ───────────────────────────────────────────────────────────
+
+  - id: direct-sql-bypass-orm
+    patterns:
+      - pattern: DB::statement(...)
+      - pattern-not: DB::statement("SELECT 1")
+    message: >
+      Direct SQL statement detected — use Eloquent ORM instead.
+      Raw SQL bypasses query parameterisation and audit logging.
+      If raw SQL is necessary, use DB::select() with parameter bindings.
+    severity: ERROR
+    languages: [php]
+    metadata:
+      category: security
+      cwe: CWE-89
+      confidence: HIGH
+
+  - id: raw-query-string-concat
+    pattern: |
+      $OBJ->query("..." . $VAR . "...")
+    message: >
+      SQL query built by string concatenation — this is vulnerable to SQL injection.
+      Use prepared statements with parameter bindings instead.
+    severity: ERROR
+    languages: [php]
+    metadata:
+      category: security
+      cwe: CWE-89
+
+  # ── Sensitive data in logs ──────────────────────────────────────────────────
+
+  - id: sensitive-data-in-logs
+    patterns:
+      - pattern: Log::$METHOD(..., $X, ...)
+      - metavariable-regex:
+          metavariable: $X
+          regex: (password|passwd|pin|cvv|card_number|iban|nib|account_number|secret|token|api_key)
+    message: >
+      A variable with a sensitive name may be written to application logs.
+      Ensure passwords, PINs, card numbers and other sensitive data are never logged.
+    severity: ERROR
+    languages: [php]
+    metadata:
+      category: security
+      cwe: CWE-532
+
+  - id: var_dump-in-production
+    patterns:
+      - pattern: var_dump(...)
+    message: >
+      var_dump() left in production code — may expose sensitive data or
+      internal structure in HTTP responses.
+    severity: WARNING
+    languages: [php]
+    metadata:
+      category: security
+
+  # ── Missing authorisation ───────────────────────────────────────────────────
+
+  - id: controller-missing-auth-middleware
+    pattern: |
+      public function $METHOD(Request $REQUEST) {
+          ...
+      }
+    pattern-not: |
+      public function $METHOD(Request $REQUEST) {
+          $this->authorize(...);
+          ...
+      }
+    pattern-not: |
+      public function $METHOD(Request $REQUEST) {
+          $this->middleware(...);
+          ...
+      }
+    message: >
+      Controller method has no explicit authorisation check.
+      Verify that authorisation is handled at the route or middleware level.
+    severity: WARNING
+    languages: [php]
+    metadata:
+      category: security
+      cwe: CWE-862
+
+  # ── Cryptography ────────────────────────────────────────────────────────────
+
+  - id: weak-hash-md5
+    patterns:
+      - pattern: md5(...)
+    message: >
+      MD5 is a cryptographically broken hash function — do not use for
+      passwords, tokens or data integrity. Use password_hash() for passwords
+      or hash('sha256', ...) for general purpose hashing.
+    severity: ERROR
+    languages: [php]
+    metadata:
+      category: security
+      cwe: CWE-327
+
+  - id: weak-hash-sha1
+    patterns:
+      - pattern: sha1(...)
+    message: >
+      SHA1 is considered weak for security purposes.
+      Use hash('sha256', ...) or hash('sha3-256', ...) instead.
+    severity: WARNING
+    languages: [php]
+    metadata:
+      category: security
+      cwe: CWE-327
+
+  - id: hardcoded-secret
+    patterns:
+      - pattern: $KEY = "..."
+      - metavariable-regex:
+          metavariable: $KEY
+          regex: (api_key|api_secret|password|secret_key|private_key|access_token)
+    message: >
+      Possible hardcoded secret detected. Secrets must never be committed
+      to source control — use environment variables or a secrets manager.
+    severity: ERROR
+    languages: [php]
+    metadata:
+      category: security
+      cwe: CWE-798
+
+  # ── Command injection ───────────────────────────────────────────────────────
+
+  - id: shell-exec-user-input
+    patterns:
+      - pattern: shell_exec($CMD)
+      - pattern-not: shell_exec("...")
+    message: >
+      shell_exec() called with a variable argument — possible command injection
+      if the variable contains unsanitised user input.
+    severity: ERROR
+    languages: [php]
+    metadata:
+      category: security
+      cwe: CWE-78
+
+  - id: exec-user-input
+    patterns:
+      - pattern: exec($CMD, ...)
+      - pattern-not: exec("...", ...)
+    message: >
+      exec() called with a variable — possible command injection.
+      Use escapeshellarg() if you must pass user input to shell commands.
+    severity: ERROR
+    languages: [php]
+    metadata:
+      category: security
+      cwe: CWE-78
+
+  # ── File handling ───────────────────────────────────────────────────────────
+
+  - id: file-inclusion-user-input
+    patterns:
+      - pattern: include($FILE)
+      - pattern-not: include("...")
+    message: >
+      Dynamic file inclusion with a variable path — possible remote/local
+      file inclusion vulnerability if the path contains user input.
+    severity: ERROR
+    languages: [php]
+    metadata:
+      category: security
+      cWE: CWE-98
+
+  # ── .NET C# rules ───────────────────────────────────────────────────────────
+
+  - id: csharp-hardcoded-password
+    patterns:
+      - pattern: string $VAR = "..."
+      - metavariable-regex:
+          metavariable: $VAR
+          regex: (?i)(password|passwd|secret|apikey|api_key|token)
+    message: >
+      Possible hardcoded secret in C# code. Use environment variables,
+      Azure Key Vault, or ASP.NET Core secrets management instead.
+    severity: ERROR
+    languages: [csharp]
+    metadata:
+      category: security
+      cwe: CWE-798
+
+  - id: csharp-sql-string-format
+    patterns:
+      - pattern: string.Format("...{...}...", ...)
+    message: >
+      SQL query built with string.Format() — potential SQL injection.
+      Use parameterised queries with SqlCommand.Parameters instead.
+    severity: WARNING
+    languages: [csharp]
+    metadata:
+      category: security
+      cwe: CWE-89

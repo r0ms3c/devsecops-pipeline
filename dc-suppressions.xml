@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+
+    <!--
+        Dependency-Check False Positive Suppressions
+        =============================================
+        This file suppresses known false positive CVE matches.
+
+        Process for adding a suppression:
+          1. Verify the CVE does NOT affect the package version in use
+          2. Document the reason and review date
+          3. Obtain approval from the security team lead
+          4. Set an expiry date — re-evaluate on each quarterly review
+          5. Commit to the security-pipeline repository
+
+        NEVER suppress:
+          - CVEs with CVSS ≥ 9.0 without CISO sign-off
+          - CVEs that appear on the CISA Known Exploited Vulnerabilities list
+          - CVEs that directly affect a production-facing component
+
+        Template for each entry:
+        <suppress until="YYYY-MM-DD">
+            <notes>
+                Package: vendor/package-name
+                CVE: CVE-XXXX-XXXXX
+                Reason: [why this is a false positive]
+                CVSS: [score]
+                Reviewed by: [name]
+                Review date: [date]
+            </notes>
+            <packageUrl regex="true">^pkg:composer/vendor/package.*$</packageUrl>
+            <cve>CVE-XXXX-XXXXX</cve>
+        </suppress>
+    -->
+
+    <!--
+        Example: phpunit matched against a PHP core CVE
+        This CVE affects PHP core, not phpunit — false positive by name match.
+        phpunit is a dev-only dependency and is not deployed to production.
+    -->
+    <!--
+    <suppress until="2026-12-31">
+        <notes>
+            Package: phpunit/phpunit
+            CVE: CVE-2008-0599
+            Reason: CVE affects PHP core (sapi/cgi), not phpunit.
+                    Dependency-Check matches by package name pattern.
+                    phpunit is a dev dependency — not deployed to production.
+            CVSS: 10.0 (against PHP core, not this package)
+            Reviewed by: Security Team
+            Review date: 2026-04-01
+        </notes>
+        <packageUrl regex="true">^pkg:composer/phpunit/phpunit.*$</packageUrl>
+        <cve>CVE-2008-0599</cve>
+    </suppress>
+    -->
+
+</suppressions>

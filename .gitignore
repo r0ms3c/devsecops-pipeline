@@ -1,0 +1,47 @@
+# Security pipeline — .gitignore
+# ================================
+# This repository should NEVER contain credentials, scan results,
+# or any data from actual project scans.
+
+# Dependency-Check output
+dc-report.json
+dc-report-full.html
+dependency-check-report.*
+/tmp/dc-report/
+
+# Semgrep output
+semgrep-report.json
+semgrep-custom.json
+
+# Generated HTML reports
+security-report.html
+semgrep-detail.html
+
+# Jenkins workspace artifacts
+*.log
+.scannerwork/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Secrets — never commit these
+*.env
+.env*
+secrets.*
+credentials.*
+*_token.txt
+*_key.txt

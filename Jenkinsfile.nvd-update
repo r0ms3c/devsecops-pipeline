@@ -1,0 +1,52 @@
+// ============================================================================
+// NVD Database Daily Update Job
+// Run this as a separate Jenkins job: dependency-check-db-update
+// Schedule: daily at 2am (H 2 * * *)
+//
+// This job keeps the local NVD CVE database current so pipeline scans
+// can use --noupdate for fast execution (~30 seconds vs ~20 minutes).
+//
+// Required Jenkins credentials:
+//   nvd-api-key — NVD API key (free from nvd.nist.gov/developers/request-an-api-key)
+// ============================================================================
+
+pipeline {
+    agent any
+
+    triggers {
+        // Runs daily at 2am — adjust to suit your off-peak hours
+        cron('H 2 * * *')
+    }
+
+    environment {
+        DC_HOME = '/opt/dependency-check/bin/dependency-check.sh'
+    }
+
+    stages {
+        stage('Update NVD database') {
+            steps {
+                withCredentials([string(credentialsId: 'nvd-api-key', variable: 'NVD_KEY')]) {
+                    // retry(3) handles database lock conflicts if a pipeline scan
+                    // happens to be running at the same time as the update
+                    retry(3) {
+                        sh """
+                            ${env.DC_HOME} \
+                              --updateonly \
+                              --nvdApiKey \$NVD_KEY \
+                              --nvdApiDelay 6000
+                        """
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "NVD database updated successfully"
+        }
+        failure {
+            echo "NVD database update failed — pipeline scans may use stale data"
+        }
+    }
+}
